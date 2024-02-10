@@ -167,7 +167,7 @@ def edit_characters(command_input, item_input):
     if len(character_list) == 0:
         print("skipped")
         return
-    if command_input in ["a", "aa", "arf", "arl"]:
+    if command_input in ["a", "ao", "arf", "arl"]:
         action_name = input("Enter the action: ")
         for char in character_list:
             char_to_edit = char

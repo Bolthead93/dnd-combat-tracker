@@ -276,7 +276,7 @@ COMMANDS:
         for example 'ncg,zombies,6' will add 6 zombies, they will become part of a group called 'zombies'.
     - Edit Player/Creature  [COMMAND],[NAME(s)] - edit a character(s) info, replace [COMMANDS] with the below commands.
         Edit Commands:
-            - Actions: Action Overwrite (a), Action Add (aa), Action Remove First (arf), Action Remove Last (arl).
+            - Actions: Action Add (a), Action Overwrite (ao), Action Remove First (arf), Action Remove Last (arl).
                 Updates the description of a player, good for tracking basic info like 'readying a spell'.
             - Buffs: Add Buff (b), Remove Buff (br), Remove All Buffs (bra).
                 Add or Remove buffs, this will ask you for a name and duration,
@@ -293,8 +293,8 @@ COMMANDS:
         Useful for setting info on enemies of the same type, e.g. 'hp,group,zombies' '22' to set all to 22 HP.
     - Add to Group (group,[GROUP NAME],[NAME],[NAME]..) - tag existing character/creatures with a group name.
     - Next round [N] - Progress to the next round, buffs and conditions will be calculated.
-    - Save/Load (save) (load) - this will save the current encounter, or load an encounter at the latest round
-    - Round Reverse/Forward (rr) (rf) - step backwards and forwards through turns
+    - Save/Load (save) (load) - this will save the current encounter, or load an encounter at the latest round.
+    - Round Reverse (rr) / Round Forward (rf) - step backwards and forwards through turns.
     - Save/Load Party [SP] / [LP] - saves the players list, loads players list.
         Saving and Loading is useful for setting up groups that you'll use often.
     - Take a note - submit any text to add a note, submit the notes number to remove the related note.
