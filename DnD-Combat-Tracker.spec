@@ -34,5 +34,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\bolth\\Desktop\\favicon (1).ico'],
+    icon=['C:\\Users\\bolth\\PycharmProjects\\DnD-Combat\\combat tracker art\\icon.ico'],
 )

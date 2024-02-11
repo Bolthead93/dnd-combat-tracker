@@ -142,12 +142,12 @@ def save_load_party(command_input):
         for char in characters:
             if characters[char].type == "player":
                 temp_characters[char] = characters[char]
-        with open(f"{directory}{party_name}.pkl", "wb") as f:
+        with open(f"{directory}P-{party_name}.pkl", "wb") as f:
             pickle.dump(temp_characters, f)
 
     elif command_input == "lp":
         party_name = input("Enter party name to load: ").lower()
-        with open(f"{directory}{party_name}.pkl", "rb") as f:
+        with open(f"{directory}P-{party_name}.pkl", "rb") as f:
             temp_characters = pickle.load(f)
         for char in temp_characters:
             if temp_characters[char].type == "player":
@@ -358,7 +358,6 @@ while in_combat:
         if round_number > 1:
             round_number -= 1
             characters = save_data_file.round_data[round_number].characters
-        print(characters)
 
     elif "load" == command:
         file_name = input("Enter file name: ").lower()
@@ -375,6 +374,7 @@ while in_combat:
         sf_name = encounter_name.lower()
         save_file(save_data_file)
         save_data.save_file(sf_name, save_data_file)
+        in_combat = False
 
     elif "help" in command:
         hide_hints = False
