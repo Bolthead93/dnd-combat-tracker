@@ -19,7 +19,7 @@ class PartyManager:
     def pull_data(self):
         """for when loading files, combat data will be loaded in before, this just fills parameters"""
         self.name = self.party_data.name
-        self.notes = self.party_data.name
+        self.notes = self.party_data.notes
         self.characters = self.party_data.characters
 
     def remove_note(self, note_index):

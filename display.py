@@ -48,7 +48,7 @@ class CombatLogger:
 
             print(art.create_banner("--- CREATURES ---"))
         for c in cm.characters.values():
-            if c.type == "creature":
+            if c.type == "creatures":
                 print(f"{c.initiative}. {c.get_info()}")
                 if c.check_finished_modifiers():
                     print(c.get_finished_modifiers())

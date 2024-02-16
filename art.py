@@ -269,6 +269,7 @@ HOW TO USE:
         - 'hp/jim,bing/20' will set the HP of jim and bing to 20, 'hp/rolus/-5' will remove 5HP from rolus.
     - Take notes by submitting the text as a command, e.g. 'this is a note' and hit enter.
         - Notes are stored separately for party setup mode and combat mode.
+        - Remove notes by inputting the number next to them.
     - Enter combat with 'combat', this will take your party to a combat setup, use 'end' to bring them back.
              
 COMMANDS:

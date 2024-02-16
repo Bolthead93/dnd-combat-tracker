@@ -284,7 +284,7 @@ class AddCreature:
     def execute(self, to_add, char_list):
         if to_add is not None:
             for name in to_add:
-                char_list[name.strip()] = character.Character(name.title().strip(), char_type="creature")
+                char_list[name.strip()] = character.Character(name.title().strip(), char_type="creatures")
 
 
 class AddCreatureGroup:
@@ -296,7 +296,7 @@ class AddCreatureGroup:
             for x in range(int(amount)):
                 char_name = f"{name[0]}{x+1}"
                 char_list[char_name] = character.Character(char_name.title(),
-                                                               char_type="creature", group_type=name[0])
+                                                               char_type="creatures", group_type=name[0])
 
 
 class SetGroup:
