@@ -1,19 +1,15 @@
+import commands
+import art
+import display
+import party_manager
+import save_data
+import combat_manager
+import os
 import copy
 
-import character
-import modifiers
-import os
-import art
-import pickle
-import save_data
-
-characters = {}
+party_name = ""
+characters_list = {}
 notes = []
-hide_hints = True
-round_number = 1
-highest_round = 1
-encounter_name = ""
-save_data_file = save_data.SaveFile()
 
 
 def display_help():
@@ -21,247 +17,276 @@ def display_help():
     print(art.text_help)
 
 
-def get_file_name():
-    return f"{encounter_name}-{round_number}"
+def party_mode(characters, p_name):
+    # set up the party manager
+    party = party_manager.PartyManager()
+    party.characters = characters
+    party.name = p_name
+    # save the party file once initialised
+    save_data.save_party(f"{party.name}", characters_list)
+
+    party_display = display.PartyLogger()
+    hide_help = True
+
+    in_party = True
+    while in_party:
+
+        party.push_data()
+        save_data.save_party(party.name, party.characters)
+        party_display.update(party)
+
+        if not hide_help:
+            display_help()
+            hide_help = True
+
+        # take user input
+        user_input = input("\nWhat do you want to do? ").lower()
+        command = commands.CommandInput(user_input, party.characters)
+
+        # Check for group or type and alter command.items to match
+        if command.items is not None:
+            if "party" in command.items or "creatures" in command.items:
+                command.items, command.characters = (commands.GetType().
+                                                     get_all_from_types(party.characters, command.items))
+            if command.mod in commands.GetGroups().valid_commands:
+                command.items, command.characters = (commands.GetGroups().
+                                                     get_all_from_groups(party.characters, command.items))
+
+        # Group
+        if command.command in commands.SetGroup().valid_commands:
+            commands.SetGroup().execute(command.mod, command.characters)
+
+        if user_input == "combat":
+            party.characters = combat_mode(party.characters)
+
+        # Creation
+        elif command.command in commands.AddPlayer().valid_commands:
+            commands.AddPlayer().execute(command.items, party.characters)
+
+        # Actions
+        elif command.command in commands.ActionAdd().valid_commands:
+            commands.ActionAdd().execute(command.characters)
+        elif command.command in commands.ActionOverwrite().valid_commands:
+            commands.ActionOverwrite().execute(command.characters)
+        elif command.command in commands.ActionRemoveFirst().valid_commands:
+            commands.ActionRemoveFirst().execute(command.characters)
+        elif command.command in commands.ActionRemoveLast().valid_commands:
+            commands.ActionRemoveLast().execute(command.characters)
+
+        # Buffs
+        elif command.command in commands.BuffAdd().valid_commands:
+            commands.BuffAdd().execute(command.characters)
+        elif command.command in commands.BuffRemove().valid_commands:
+            commands.BuffRemove().execute(command.characters)
+        elif command.command in commands.BuffRemoveAll().valid_commands:
+            commands.BuffRemoveAll().execute(command.characters)
+
+        # Conditions
+        elif command.command in commands.CondAdd().valid_commands:
+            commands.CondAdd().execute(command.characters)
+        elif command.command in commands.CondRemove().valid_commands:
+            commands.CondRemove().execute(command.characters)
+        elif command.command in commands.CondRemoveAll().valid_commands:
+            commands.CondRemoveAll().execute(command.characters)
+
+        # Health
+        elif command.command in commands.SetHealth().valid_commands:
+            commands.SetHealth().execute(command.characters, command.mod)
+        elif command.command in commands.SetMaxHealth().valid_commands:
+            commands.SetMaxHealth().execute(command.characters, command.mod)
+        elif command.command in commands.SetTempHealth().valid_commands:
+            commands.SetTempHealth().execute(command.characters, command.mod)
+
+        # AC
+        elif command.command in commands.SetAC().valid_commands:
+            commands.SetAC().execute(command.characters, command.mod)
+
+        # Inventory
+        elif command.command in commands.SetAmmo().valid_commands:
+            commands.SetAmmo().execute(command.characters, command.mod)
+
+        # Remove
+        elif command.command in commands.RemoveCharacter().valid_commands:
+            commands.RemoveCharacter().execute(party.characters, command.characters)
+
+        # Save and Load
+        elif command.command in commands.SaveParty().valid_commands:
+            commands.SaveParty().execute(command.mod, party.characters)
+        elif command.command in commands.LoadParty().valid_commands:
+            commands.LoadParty().execute(command.mod, party.characters)
+
+        elif "help" == command.command:
+            print("should unhide")
+            hide_help = False
+
+        elif command.command.isnumeric():
+            party.remove_note(int(command.command) - 1)
+        elif command.items is None and command.mod is None:
+            party.notes.append(command.command)
 
 
-def display_notes():
-    if len(notes) > 0:
-        print(art.create_banner("NOTES"))
-        for n in notes:
-            note_index = notes.index(n)
-            print(f"{note_index + 1}. {str().join(n)}")
-        print("\n")
+def combat_mode(characters):
 
-
-def remove_note(note_index):
-    if len(notes) > note_index >= 0:
-        notes.remove(notes[note_index])
-
-
-def update_display():
-    os.system("cls")
-    art.make_combat_title(encounter_name)
-    print(art.create_banner(f"--- ROUND {round_number} / {highest_round} ---"))
-
-    display_notes()
-
-    if len(characters) > 0:
-        print(art.create_banner("--- PLAYERS--- "))
-    for char in characters:
-        if characters[char].type == "player":
-            print(characters[char].get_info())
-            if characters[char].check_finished_modifiers():
-                print(characters[char].get_finished_modifiers())
-
-    if len(characters) > 0:
-        print("\n")
-        print(art.create_banner("--- CREATURES ---"))
-    for char in characters:
-        if characters[char].type == "creature":
-            print(characters[char].get_info())
-            if characters[char].check_finished_modifiers():
-                print(characters[char].get_finished_modifiers())
-
-
-def load_file(file):
-    global characters
-    global notes
-    global round_number
-    global highest_round
-    global encounter_name
-    global save_data_file
-    save_data_file = file
-    encounter_name = file.encounter_name
-    highest_round = file.highest_round
-    characters = file.round_data[file.highest_round].characters
-    round_number = file.highest_round
-    notes = file.notes
-
-
-def save_file(file):
-    file = save_data_file
-    file.round_data[round_number] = save_data.RoundData(round_number, characters)
-    file.encounter_name = encounter_name
-    file.highest_round = highest_round
-    file.notes = notes
-
-
-def write_to_file():
-    # with open(f"{encounter_name}.txt", "a") as text_file:
-    #     text_file.write("\n\n")
-    #     text_file.write((art.create_banner(f"{encounter_name.upper()} - ROUND {round_number}")))
-    #     text_file.write("\n")
-    #     if len(notes) > 0:
-    #         text_file.write(art.create_banner("NOTES"))
-    #         text_file.write("\n")
-    #         for n in notes:
-    #             note_index = notes.index(n)
-    #             text_file.write(f"{note_index + 1}. {str().join(n)}")
-    #         text_file.write("\n")
-    #     if len(characters) > 0:
-    #         text_file.write(art.create_banner("PLAYERS"))
-    #         text_file.write("\n")
-    #     for char in characters:
-    #         if characters[char].type == "player":
-    #             text_file.write(characters[char].get_info())
-    #             text_file.write("\n")
-    #     text_file.write(art.create_banner("CREATURES"))
-    #     text_file.write("\n")
-    #     for char in characters:
-    #         if characters[char].type == "creature":
-    #             text_file.write(characters[char].get_info())
-    #             text_file.write("\n")
-    return
-
-
-def get_command(command_input):
-    """returns a list which includes the command, and then a list of items to modify"""
-    commands_list = command_input.split(sep=",")
-    return commands_list[0]
-
-
-def get_command_items(command_input):
-    """return a list of items to perform the command on"""
-    commands_list = command_input.split(sep=",")
-    if len(commands_list) > 1:
-        items_in_list = [com.strip() for com in commands_list[1:]]
-        return items_in_list
+    # set up the combat manager
+    combat = combat_manager.CombatManager()
+    combat.characters.update(characters)
+    # load in existing encounter or create a new one
+    player_input = input("Enter an encounter name or type 'load': ").lower()
+    if player_input in commands.LoadCombatFile().valid_commands:
+        player_input = input("Enter encounter name: ")
+        if save_data.does_file_exists(player_input):
+            combat.name = player_input
+            combat.combat_data = commands.LoadCombatFile().execute(player_input)
+            combat.pull_data()
+        else:
+            print("file not found")
+            return(characters)
     else:
-        return []
+        combat.name = player_input
+    # update the display
+    combat_display = display.CombatLogger()
+
+    hide_help = True
+    command = commands.CommandInput("", "")
+    in_combat = True
+
+    while in_combat:
+        combat.sort_initiative()
+        combat.push_data()
+        save_data.save_file(combat.name, combat.combat_data)
+        combat_display.update(combat)
 
 
-def save_load_party(command_input):
-    directory = f"{os.getcwd()}\\saved_files\\"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+        # show hints if the command was to un-hide
+        if not hide_help:
+            hide_help = True
+            display_help()
 
-    if command_input == "sp":
-        party_name = input("Enter party name: ").lower()
-        temp_characters = {}
-        for char in characters:
-            if characters[char].type == "player":
-                temp_characters[char] = characters[char]
-        with open(f"{directory}P-{party_name}.pkl", "wb") as f:
-            pickle.dump(temp_characters, f)
+        # for deving and checking what command is outputting
+        # if len(command.command) != None:
+        #     print(f"last command: {command.command, command.items, command.characters, command.mod}")
 
-    elif command_input == "lp":
-        party_name = input("Enter party name to load: ").lower()
-        with open(f"{directory}P-{party_name}.pkl", "rb") as f:
-            temp_characters = pickle.load(f)
-        for char in temp_characters:
-            if temp_characters[char].type == "player":
-                characters[char] = temp_characters[char]
+        # take user input
+        user_input = input("\nWhat do you want to do? ").lower()
+        command = commands.CommandInput(user_input, combat.characters)
+
+        # Check for group or type and alter command.items to match
+        if command.items is not None:
+            if "party" in command.items or "creatures" in command.items:
+                command.items, command.characters = (commands.GetType()
+                                                     .get_all_from_types(combat.characters, command.items))
+            if command.mod in commands.GetGroups().valid_commands:
+                command.items, command.characters = (commands.GetGroups()
+                                                     .get_all_from_groups(combat.characters, command.items))
+
+        # Group
+        if command.command in commands.SetGroup().valid_commands:
+            commands.SetGroup().execute(command.mod, command.characters)
+
+        # Creation
+        if command.command in commands.AddPlayer().valid_commands:
+            commands.AddPlayer().execute(command.items, combat.characters)
+        elif command.command in commands.AddCreature().valid_commands:
+            commands.AddCreature().execute(command.items, combat.characters)
+        elif command.command in commands.AddCreatureGroup().valid_commands:
+            commands.AddCreatureGroup().execute(command.items, combat.characters, command.mod)
+
+        # Actions
+        elif command.command in commands.ActionAdd().valid_commands:
+            commands.ActionAdd().execute(command.characters)
+        elif command.command in commands.ActionOverwrite().valid_commands:
+            commands.ActionOverwrite().execute(command.characters)
+        elif command.command in commands.ActionRemoveFirst().valid_commands:
+            commands.ActionRemoveFirst().execute(command.characters)
+        elif command.command in commands.ActionRemoveLast().valid_commands:
+            commands.ActionRemoveLast().execute(command.characters)
+
+        # Buffs
+        elif command.command in commands.BuffAdd().valid_commands:
+            commands.BuffAdd().execute(command.characters)
+        elif command.command in commands.BuffRemove().valid_commands:
+            commands.BuffRemove().execute(command.characters)
+        elif command.command in commands.BuffRemoveAll().valid_commands:
+            commands.BuffRemoveAll().execute(command.characters)
+
+        # Conditions
+        elif command.command in commands.CondAdd().valid_commands:
+            commands.CondAdd().execute(command.characters)
+        elif command.command in commands.CondRemove().valid_commands:
+            commands.CondRemove().execute(command.characters)
+        elif command.command in commands.CondRemoveAll().valid_commands:
+            commands.CondRemoveAll().execute(command.characters)
+
+        # Health
+        elif command.command in commands.SetHealth().valid_commands:
+            commands.SetHealth().execute(command.characters, command.mod)
+        elif command.command in commands.SetMaxHealth().valid_commands:
+            commands.SetMaxHealth().execute(command.characters, command.mod)
+        elif command.command in commands.SetTempHealth().valid_commands:
+            commands.SetTempHealth().execute(command.characters, command.mod)
+
+        # AC
+        elif command.command in commands.SetAC().valid_commands:
+            commands.SetAC().execute(command.characters, command.mod)
+
+        # Inventory
+        elif command.command in commands.SetAmmo().valid_commands:
+            commands.SetAmmo().execute(command.characters, command.mod)
+
+        # Initiative
+        elif command.command in commands.SetInitiative().valid_commands:
+            commands.SetInitiative().execute(command.characters, command.mod)
+        elif command.command == "setinit":
+            combat.set_initiative()
+            combat.turn = 0
+            combat.sort_initiative()
+
+        # Remove
+        elif command.command in commands.RemoveCharacter().valid_commands:
+            commands.RemoveCharacter().execute(combat.characters, command.characters)
+
+        # Save and Load
+        elif command.command in commands.SaveParty().valid_commands:
+            commands.SaveParty().execute(command.mod, combat.characters)
+        elif command.command in commands.LoadParty().valid_commands:
+            commands.LoadParty().execute(command.mod, combat.characters)
+
+        elif command.command in commands.SaveCombatFile().valid_commands:
+            combat.push_data()
+            commands.SaveCombatFile().execute(command.mod, combat.combat_data)
+        elif command.command in commands.LoadCombatFile().valid_commands:
+            combat.combat_data = commands.LoadCombatFile().execute(command.mod)
+            combat.pull_data()
+
+        # Rounds
+        elif command.command in commands.NextRound().valid_commands:
+            commands.NextRound().execute(combat)
+        elif command.command in commands.RedoRound().valid_commands:
+            commands.RedoRound().execute(combat)
+        elif command.command in commands.UndoRound().valid_commands:
+            commands.UndoRound().execute(combat)
+
+        elif command.command in commands.NextTurn().valid_commands:
+            commands.NextTurn().execute(combat)
+        elif command.command in commands.PreviousTurn().valid_commands:
+            commands.PreviousTurn().execute(combat)
+
+        # End
+        elif command.command in commands.EndCombat().valid_commands:
+            commands.EndCombat().execute(combat)
+            combat.dump_round_characters()
+            return combat.characters
+
+        elif "help" == command:
+            hide_help = False
+
+        elif command.command.isnumeric():
+            combat.remove_note(int(command.command) - 1)
+        elif command.items is None and command.mod is None:
+            combat.notes.append(command.command)
 
 
-def get_valid_character_list(item_list):
-    valid_list = []
-    for char in item_list:
-        if char in characters:
-            valid_list.append(char)
-    return valid_list
-
-
-def edit_characters(command_input, item_input):
-    character_list = get_valid_character_list(item_input)
-    if len(character_list) == 0:
-        print("skipped")
-        return
-    if command_input in ["a", "ao", "arf", "arl"]:
-        action_name = input("Enter the action: ")
-        for char in character_list:
-            char_to_edit = char
-            if "a" == command_input:
-                characters[char_to_edit].add_action(action_name)
-            elif "ao" == command_input:
-                characters[char_to_edit].actions = [action_name]
-            elif "arf" == command_input:
-                characters[char_to_edit].remove_action(0)
-            elif "arl" == command_input:
-                characters[char_to_edit].remove_action(-1)
-    elif command_input in ["b", "br", "bra"]:
-        buff_duration = 0
-        if "b" == command_input:
-            buff_name = input("Buff name: ").lower()
-            buff_duration = input("Buff duration: ")
-        elif "br" == command_input:
-            buff_name = input("Buff name: ").lower()
-        for char in character_list:
-            char_to_edit = char
-            if "b" == command_input:
-                new_buff = modifiers.Modifier(buff_name, buff_duration)
-                characters[char_to_edit].apply_buff(new_buff)
-            elif "br" == command_input:
-                characters[char_to_edit].remove_buff(buff_name)
-            elif "bra" == command_input:
-                characters[char_to_edit].remove_all_buffs()
-    elif command_input in ["c", "cr", "cra"]:
-        cond_duration = 0
-        if "c" == command_input:
-            condition = input("Condition name: ").lower()
-            cond_duration = input("Condition duration: ")
-        elif "cr" == command_input:
-            condition = input("Condition name: ").lower()
-        for char in character_list:
-            char_to_edit = char
-            if "c" == command_input:
-                new_cond = modifiers.Modifier(condition, cond_duration)
-                characters[char_to_edit].apply_condition(new_cond)
-            elif "cr" == command_input:
-                characters[char_to_edit].remove_condition(condition)
-            elif "cra" == command_input:
-                characters[char_to_edit].remove_all_conditions()
-    elif command in ["hp", "hpt", "hpm"]:
-        if "hp" == command_input:
-            health_input = input("Set(#), increase(+#), or decrease(-#):")
-            for char in character_list:
-                characters[char].set_hp(health_input)
-        elif "hpt" == command_input:
-            temp_health = input("Set temp health: (hp decrease will deduct from this first) ")
-            for char in character_list:
-                characters[char].set_temp_hp(temp_health)
-        elif "hpm" == command:
-            hp_max = input("Enter new max HP: ")
-            for char in character_list:
-                characters[char].set_max_hp(hp_max)
-    elif "ac" == command:
-        ac_input = input("Enter AC: ")
-        for char in character_list:
-            characters[char].set_ac(ac_input)
-    elif "remove" == command_input:
-        for char in character_list:
-            if char in characters:
-                del characters[char]
-
-
-def group_characters(items_input):
-    if len(items_input) > 1:
-        group_name = items_input[0]
-        things_to_group = items_input[1:]
-        for char in things_to_group:
-            characters[char].group = group_name.lower()
-
-
-def get_all_of_type(items_input):
-    temp_list = []
-    if "party" in items_input:
-        for char in characters:
-            if characters[char].type == "player":
-                temp_list.append(char)
-    if "creatures" in items_input:
-        for char in characters:
-            if characters[char].type == "creature":
-                temp_list.append(char)
-    if "group" in items_input:
-        groups_to_edit = items_input[1:]
-        for group in groups_to_edit:
-            for char in characters:
-                if characters[char].group.lower() == group.lower():
-                    temp_list.append(char)
-    return temp_list
-
-
-# initial screen to display
+# start up the game to create or load a party
 waiting_for_input = True
 file_found = True
 while waiting_for_input:
@@ -269,117 +294,18 @@ while waiting_for_input:
     print(art.logo)
     print(art.info)
     if not file_found:
-        print("\nFile note found")
-    start_command = input("\nEnter an encounter name, or type 'load' to open a file: ").lower()
+        print("\nFile not found")
+    start_command = input("\nType a new party name or 'load' one: ").lower()
     if start_command == "load":
         file_name = input("Enter file name: ").lower()
-        if save_data.does_file_exists(file_name):
-            file_to_load = save_data.load_file(file_name)
-            load_file(file_to_load)
+        party_name = file_name
+        if save_data.does_file_exists(f"P-{file_name}"):
+            file_to_load = save_data.load_party(file_name, characters_list)
             waiting_for_input = False
         else:
             file_found = False
     else:
-        save_data_file.encounter_name = start_command
-        encounter_name = save_data_file.encounter_name
+        party_name = start_command
         waiting_for_input = False
 
-
-
-# the trackers main loop
-in_combat = True
-while in_combat:
-
-    update_display()
-    if not hide_hints:
-        hide_hints = True
-        display_help()
-
-    # take user input
-    user_input = input("\nWhat do you want to do? ").lower()
-    command = get_command(user_input)
-    items = get_command_items(user_input)
-
-    # check for these inputs as secondary commands
-    if "party" in items or "creatures" in items or "group" in items:
-        items = get_all_of_type(items)
-
-    # create a new player or players from the items in the list
-    if "np" == command:
-        for item in items:
-            name = item.lower()
-            characters[name] = character.Character(name.title(), char_type="player")
-    # create a new creature or creatures from the items in the list
-    elif "nc" == command:
-        for item in items:
-            name = item.lower()
-            characters[name] = character.Character(name.title(), char_type="creature")
-
-    elif "ncg" == command:
-        if len(items) == 2 and items[1].isnumeric():
-            for x in range(int(items[1])):
-                creature_name = items[0] + str(x + 1)
-                characters[creature_name] = character.Character(creature_name.title(),
-                                                                char_type="creature", group_type=items[0])
-        else:
-            print("invalid command")
-
-    elif "group" == command:
-        group_characters(items)
-
-    # if the command is to edit characters
-    elif command in ("a", "ao", "arl", "arf", "b", "br", "bra", "c", "cr", "cra", "hp", "hpt", "hpm", "ac", "remove"):
-        edit_characters(command, items)
-
-    # save or load the player party
-    elif command in ["sp", "lp"]:
-        save_load_party(command)
-
-    # count the next round and change the stats
-    elif "n" == command:
-        round_characters = {}
-        for each_char in characters:
-            new_char = copy.deepcopy(characters[each_char])
-            round_characters[each_char] = new_char
-        save_data_file.round_data[round_number] = save_data.RoundData(round_number, round_characters)
-        round_number += 1
-        save_file(save_data_file)
-        highest_round = round_number
-        for char in characters:
-            characters[char].count_round()
-
-    elif "rf" == command:
-        if round_number + 1 <= highest_round:
-            round_number += 1
-            characters = save_data_file.round_data[round_number].characters
-
-    elif "rr" == command:
-        save_data_file.round_data[round_number] = save_data.RoundData(round_number, characters)
-        if round_number > 1:
-            round_number -= 1
-            characters = save_data_file.round_data[round_number].characters
-
-    elif "load" == command:
-        file_name = input("Enter file name: ").lower()
-        if save_data.does_file_exists(file_name):
-            file_to_load = save_data.load_file(file_name)
-            load_file(file_to_load)
-
-    elif "save" == command:
-        sf_name = input("Enter a file name: ").lower()
-        save_file(save_data_file)
-        save_data.save_file(sf_name, save_data_file)
-
-    elif "end" == command:
-        sf_name = encounter_name.lower()
-        save_file(save_data_file)
-        save_data.save_file(sf_name, save_data_file)
-        in_combat = False
-
-    elif "help" in command:
-        hide_hints = False
-
-    elif command.isnumeric():
-        remove_note(int(command) - 1)
-    else:
-        notes.append(user_input)
+party_mode(characters_list, party_name)

@@ -1,3 +1,5 @@
+import modifiers
+
 class Character:
     def __init__(self, name="name", hp=0, char_type="player", group_type="none"):
         self.name = name
@@ -10,6 +12,8 @@ class Character:
         self.conditions = []
         self.type = char_type
         self.group = group_type
+        self.initiative = 0
+        self.ammo = 0
 
 
     def set_hp(self, amount):
@@ -33,6 +37,8 @@ class Character:
             self.hp = value
             if self.max_hp == 0:
                 self.max_hp = self.hp
+            elif value > self.max_hp:
+                self.hp = self.max_hp
 
     def set_temp_hp(self, amount):
         if amount.isnumeric():
@@ -48,7 +54,14 @@ class Character:
         if amount.isnumeric():
             self.ac = int(amount)
 
-    def apply_buff(self, new_buff):
+    def set_ammo(self, amount):
+        if amount.isnumeric():
+            self.ammo = int(amount)
+        else:
+            self.ammo -= 1
+
+    def apply_buff(self, buff_name, buff_duration):
+        new_buff = modifiers.Modifier(buff_name, buff_duration)
         buff_exists = False
         current_buff = None
         for buff in self.buffs:
@@ -61,7 +74,8 @@ class Character:
             self.remove_buff(current_buff.name)
             self.buffs.append(new_buff)
 
-    def apply_condition(self, new_cond):
+    def apply_condition(self, cond_name, cond_duration):
+        new_cond = modifiers.Modifier(cond_name, cond_duration)
         cond_exists = False
         current_cond = None
         for cond in self.conditions:
@@ -165,24 +179,29 @@ class Character:
 
         hp = ""
         if self.hp != 0:
-            hp = f"HP: {self.hp}/{self.max_hp}, "
+            hp = f", HP: {self.hp}/{self.max_hp}"
         if self.temp_hp > 0:
-            hp = f"HP: {self.hp}/{self.max_hp}(+{self.temp_hp}), "
+            hp = f", HP: {self.hp}/{self.max_hp}(+{self.temp_hp})"
 
         ac = ""
         if self.ac > 0:
-            ac = f" AC: {self.ac}, "
+            ac = f", AC: {self.ac}"
+
+        ammo = ""
+        if self.ammo != 0:
+            ammo = f", Ammo: {self.ammo}"
+
 
         actions = ""
         if len(self.actions) > 0:
-            actions = f"Actions: {self.actions}, "
+            actions = f", Actions: {self.actions}"
 
         buffs = ""
         if len(self.buffs) > 0:
-            buffs = f"Buffs: {self.get_buffs()},"
+            buffs = f", Buffs: {self.get_buffs()}"
 
         conditions = ""
         if len(self.conditions) > 0:
-            conditions = f"Conditions: {self.get_conditions()}"
+            conditions = f", Conditions: {self.get_conditions()}"
 
-        return f"{self.name}, {ac} {hp} {actions} {buffs} {conditions}"
+        return f"{self.name}{ac}{hp}{ammo}{actions}{buffs}{conditions}"

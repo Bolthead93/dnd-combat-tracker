@@ -224,8 +224,8 @@ ascii_letters = {
 }
 
 
-def make_combat_title(combat_name=""):
-    word_to_make = [letter.lower() for letter in combat_name if letter.isalpha() or letter == " "]
+def make_combat_title(title_name=""):
+    word_to_make = [letter.lower() for letter in title_name if letter.isalpha() or letter == " "]
 
     # give me the height of ascii characters based on a
     ascii_height = len(ascii_letters["a"].split("\n")) - 1
@@ -254,50 +254,82 @@ def create_banner(text):
 
 info = (
     "A tool to help you remember who's got what in the middle of combat.\n"
-    "Add players and creatures to the lists, using commands you can add buffs, debuffs, and descriptions\n"
-    "As you finish a turn of combat, use the 'n' command to advanced the round, automatically updating stats.\n"
-    "Type 'help' for a list of commands."
+    "Create a party and then enter combat mode to add creatures and track turns and rounds.\n"
+    "Automatically track buffs and conditions durations as you step through rounds.\n"
+    "Type 'help' for more information at any time (except for this time, this is party name time)."
 
 )
 
 text_help = ("""
 HOW TO USE:
-    - Input a command followed by names to create or edit characters, all commands are to be split by a comma(,).
-    - For example, to create players, type 'np,jim,bing' to create 2 new players with the names 'jim' and 'bing'.
-    - Take notes by just typing the note.
-     - You can multi-edit players, creatures, or groups, for example:
-        - 'hp,zombie1,zombie2,zombie3' and then typing a value, will set the HP of all of these to that value.
-        - Alternatively, if you made 3 zombies using the group command, you can type 'hp,group,zombie'.
+    - Using the commands below, you can create players/creatures and edit their stats.
+    - All commands follow a similar structure, COMMAND/ITEMS/MODIFIER or COMMAND/ITEM,ITEM,ITEM.../MODIFIER:
+    - Some examples are:
+        - 'np/jim,bing,rolus' uses the new players command to create 3 players named jim, bing, and rolus.
+        - 'hp/jim,bing/20' will set the HP of jim and bing to 20, 'hp/rolus/-5' will remove 5HP from rolus.
+    - Take notes by submitting the text as a command, e.g. 'this is a note' and hit enter.
+        - Notes are stored separately for party setup mode and combat mode.
+    - Enter combat with 'combat', this will take your party to a combat setup, use 'end' to bring them back.
              
 COMMANDS:
-    - Add new player (nc,[PLAYER NAME]) - adds player(s) to the players list.
-    - Add new creature (nc,[CREATURE NAME]) - adds a creature to the creatures list.
-    - Add new creature group (ncg,[CREATURE NAME],[AMOUNT TO ADD]) - add a group of creatures with the same name,
-        for example 'ncg,zombies,6' will add 6 zombies, they will become part of a group called 'zombies'.
-    - Edit Player/Creature  [COMMAND],[NAME(s)] - edit a character(s) info, replace [COMMANDS] with the below commands.
+    PARTY MODE:
+    - Add new player (np/NAME) or (np/NAME,NAME,NAME) - adds player(s) to the players list.
+    - Edit characters  (COMMAND/NAME/MOD*) - edit a character(s) info, below is a list of commands.
+            Anything with a * next to it, can use MOD as a value input.
         Edit Commands:
             - Actions: Action Add (a), Action Overwrite (ao), Action Remove First (arf), Action Remove Last (arl).
                 Updates the description of a player, good for tracking basic info like 'readying a spell'.
             - Buffs: Add Buff (b), Remove Buff (br), Remove All Buffs (bra).
                 Add or Remove buffs, this will ask you for a name and duration,
-                use a positive number ('10') for the tracker to count it down, or use
-                a negative number to count up ('-4' will start counting up from 4).
+                use a positive number ('10') duration, will start the buff at that and count down,
+                use a negative number to count up ('-4' will start counting up from 4).
             - Conditions: Add Condition (c), Remove Condition (cr), Remove All Condition (cra).
                 Uses the same system as buffs.
-            - Health: (hp) - you will be prompted to set, increase, or decrease health by typing a number.
-            - Temp Health (hpt) - same as the health input.
-            - Health Max (hpm) - set the max HP. when setting 'hp' the first time, this will be set to that value.
-            - Set AC (ac) - set the AC for characters.
-            -Remove from list (remove,[NAME]) - 'remove,jimothy' will remove jimothy from the list.
-    - Edit Groups ([COMMAND],group,[GROUP NAME]) - change info for all creatures in a group.
-        Useful for setting info on enemies of the same type, e.g. 'hp,group,zombies' '22' to set all to 22 HP.
-    - Add to Group (group,[GROUP NAME],[NAME],[NAME]..) - tag existing character/creatures with a group name.
-    - Next round [N] - Progress to the next round, buffs and conditions will be calculated.
-    - Save/Load (save) (load) - this will save the current encounter, or load an encounter at the latest round.
-    - Round Reverse (rr) / Round Forward (rf) - step backwards and forwards through turns.
-    - Save/Load Party [SP] / [LP] - saves the players list, loads players list.
-        Saving and Loading is useful for setting up groups that you'll use often.
-    - Take a note - submit any text to add a note, submit the notes number to remove the related note.
-    - Show Help [HELP] - show this help information.
-    - End Combat [END] - closes the combat tracker and saves out the log to a text file.
+            - Health* (hp) - you will be prompted to set, increase, or decrease health by typing a number.
+                using a value as mod will skip the prompt and use the provided value.
+            - Temp Health* (hpt) - same as the health input.
+            - Health Max* (hpm) - set the max HP. when setting 'hp' the first time, this will be set to that value.
+            - AC* (ac) - set the AC for characters.
+            - Remove (remove) - 'remove,jimothy' will remove jimothy from the list.
+    - Enter Combat Mode (combat) - move the players in to combat mode.
+    - Save Party (sp) - save the players to a party file, can be used in combat to save just the players
+    - Load Party (lp) - load the players from a party file, used on app launch or to load them in to combat
+    - Show Help (help) - show this help information.
+        
+    COMBAT MODE:
+    In combat mode you can use the commands from party mode along with these new ones.
+    - Add new creature (nc/NAME) or (nc/NAME,NAME,NAME) - adds a creature to the creatures list.
+    - Add new creature group (ncg/NAME/QUANTITY) - add multiple creatures that share a name.
+        for example 'ncg/zombie/3' will add 3 zombies called 'Zombie1', 'Zombie2', 'Zombie3'.
+    - Edit Player/Creature - Uses the same COMMAND/NAME/MOD structure as in party mode, but has a couple extras.
+        - Initiative* (i) - set the initiative for a specific character(s).
+        - Count Ammo* (ammo) - using without MOD will count down 1 ammo, using with MOD will set ammo.
+    - Set Initiative For All (setinit) - this will prompt you for each character 1 by 1.
+    - Next Turn (t) / Previous Turn (tr) - move through the initiative tracker.
+    - Progress Round (r) - move to the next round, buffs and conditions update and will be cleared if they were ending.
+    - Next Round (rf) / Previous Round (rr) - this will let you step back through rounds, like an undo/redo.
+        if you step back to a round, and then progress round, the round you were on will be used as the latest.
+    - Save (save) / Load (load) - save or load combat encounters, this will save or load
+        all characters at the latest round of combat. Useful for setting up encounters before the sesh.
+    - End Combat (end) - takes the player characters back to party mode with the same stats as they 
+        had in current round.
+    
+    GROUPS INFO
+    - Here is some more information on how groups can be used to speed things up.
+    - When you create a group e.g. 'ncg/zombie/3' they will have a group name linked to them that matches
+        the name that you input, so these are all in a group called zombie.
+    - You can then use the group name instead of characters names, and use 'group' as a modifier.
+        For example, 'hp/zombie/group will let you set the HP of all creatures in the zombie group at once.
+        One thing to note, as 'group' takes up the modifier slot, you can't use a value as a modifier, so you
+        will have to set health using the prompt.
+    Group Commands:
+        - Edit Groups (COMMAND/GROUPNAME/group) - change info for all characters in a group.
+        - Add to Group (group/NAME,NAME,NAME/GROUPNAME) - put the characters in to a group with the name given.
+            Example:
+            'group/zombie,skeleton,vampire/undead' will group these characters in to a group called undead.
+            'c/undead/group' will then let me apply a condition to the undead group of characters.
+        - Edit Party (COMMAND/party/MOD) - edit all players in the party.
+        - Edit Creatures (COMMAND/creatures/MOD) - edit all creatures in the creature list.
+            -These last 2 commands are most useful for resetting things, for example you can use the command
+            'hp/party/+1000', and as long as the players had a max HP set, then it will fill all their HP to max.
 """)
