@@ -17,7 +17,6 @@ class CombatDataFile:
         self.notes = []
 
 
-
 def get_save_directory():
     return f"{os.getcwd()}\\saved_files\\"
 
@@ -47,20 +46,21 @@ def load_file(file_name):
     return data_file
 
 
-def save_party(file_name, characters):
+def save_party(file_name, data_file):
     """take characters with the 'player' type and saves them to 'P-(file_name)'"""
     make_save_directory()
-    temp_characters = {n: c for (n, c) in characters.items() if c.type == "party"}
+    new_save = data_file
+    new_save.characters = {n: c for n, c in data_file.characters.items() if c.type == "party"}
     with open(f"{get_save_directory()}P-{file_name}.pkl", "wb") as f:
-        pickle.dump(temp_characters, f)
+        pickle.dump(new_save, f)
 
 
-def load_party(file_name, characters):
+def load_party(file_name):
     """takes current characters and fills add characters with the 'player' type"""
     make_save_directory()
     with open(f"{get_save_directory()}P-{file_name}.pkl", "rb") as f:
-        temp_characters = pickle.load(f)
-    for name, char in temp_characters.items():
-        if temp_characters[name].type == "party":
-            characters[name] = char
+        data_file = pickle.load(f)
+        data_file.characters = {n: c for (n, c) in data_file.characters.items() if c.type == "party"}
+    return data_file
+
 

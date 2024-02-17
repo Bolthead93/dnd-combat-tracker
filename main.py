@@ -17,13 +17,14 @@ def display_help():
     print(art.text_help)
 
 
-def party_mode(characters, p_name):
+def party_mode():
     # set up the party manager
     party = party_manager.PartyManager()
-    party.characters = characters
-    party.name = p_name
+    party.characters = characters_list
+    party.name = party_name
+    party.notes = notes
     # save the party file once initialised
-    save_data.save_party(f"{party.name}", characters_list)
+    save_data.save_party(f"{party.name}", party.party_data)
 
     party_display = display.PartyLogger()
     hide_help = True
@@ -32,7 +33,7 @@ def party_mode(characters, p_name):
     while in_party:
 
         party.push_data()
-        save_data.save_party(party.name, party.characters)
+        save_data.save_party(party.name, party.party_data)
         party_display.update(party)
 
         if not hide_help:
@@ -298,9 +299,11 @@ while waiting_for_input:
     start_command = input("\nType a new party name or 'load' one: ").lower()
     if start_command == "load":
         file_name = input("Enter file name: ").lower()
-        party_name = file_name
         if save_data.does_file_exists(f"P-{file_name}"):
-            file_to_load = save_data.load_party(file_name, characters_list)
+            loaded_party = save_data.load_party(file_name)
+            characters_list = loaded_party.characters
+            notes = loaded_party.notes
+            party_name = loaded_party.name
             waiting_for_input = False
         else:
             file_found = False
@@ -308,4 +311,4 @@ while waiting_for_input:
         party_name = start_command
         waiting_for_input = False
 
-party_mode(characters_list, party_name)
+party_mode()

@@ -358,7 +358,8 @@ class LoadParty:
             file_name = file_input.lower()
         else:
             file_name = input("Enter party name: ").lower()
-        save_data.load_party(file_name,characters)
+        loaded_party = save_data.load_party(file_name)
+        characters = loaded_party.characters
 
 
 class LoadCombatFile:
