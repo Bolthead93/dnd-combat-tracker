@@ -42,7 +42,7 @@ class CommandInput:
                 self.items = None
                 self.mod = None
 
-        if len(self.items) == 1:
+        if self.items is not None and len(self.items) == 1:
             self.item = self.items[0]
         else:
             self.item = None
