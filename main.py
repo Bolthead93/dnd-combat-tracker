@@ -48,76 +48,76 @@ def party_mode():
         if command.items is not None:
             if "party" in command.items or "creatures" in command.items:
                 command.items, command.characters = (commands.GetType().
-                                                     get_all_from_types(party.characters, command.items))
+                                                     get_all_from_types(command, party.characters))
             if command.mod in commands.GetGroups().valid_commands:
                 command.items, command.characters = (commands.GetGroups().
-                                                     get_all_from_groups(party.characters, command.items))
+                                                     get_all_from_groups(command, party.characters))
 
         # Group
         if command.command in commands.SetGroup().valid_commands:
-            commands.SetGroup().execute(command.mod, command.characters)
+            commands.SetGroup().execute(command, party.characters)
 
         if user_input == "combat":
             party.characters = combat_mode(party.characters)
 
         # Creation
         elif command.command in commands.AddPlayer().valid_commands:
-            commands.AddPlayer().execute(command.items, party.characters)
+            commands.AddPlayer().execute(command, party.characters)
 
         # Actions
         elif command.command in commands.ActionAdd().valid_commands:
-            commands.ActionAdd().execute(command.characters)
+            commands.ActionAdd().execute(command)
         elif command.command in commands.ActionOverwrite().valid_commands:
-            commands.ActionOverwrite().execute(command.characters)
+            commands.ActionOverwrite().execute(command)
         elif command.command in commands.ActionRemoveFirst().valid_commands:
-            commands.ActionRemoveFirst().execute(command.characters)
+            commands.ActionRemoveFirst().execute(command)
         elif command.command in commands.ActionRemoveLast().valid_commands:
-            commands.ActionRemoveLast().execute(command.characters)
+            commands.ActionRemoveLast().execute(command)
 
         # Buffs
         elif command.command in commands.BuffAdd().valid_commands:
-            commands.BuffAdd().execute(command.characters)
+            commands.BuffAdd().execute(command)
         elif command.command in commands.BuffRemove().valid_commands:
-            commands.BuffRemove().execute(command.characters)
+            commands.BuffRemove().execute(command)
         elif command.command in commands.BuffRemoveAll().valid_commands:
-            commands.BuffRemoveAll().execute(command.characters)
+            commands.BuffRemoveAll().execute(command)
 
         # Conditions
         elif command.command in commands.CondAdd().valid_commands:
-            commands.CondAdd().execute(command.characters)
+            commands.CondAdd().execute(command)
         elif command.command in commands.CondRemove().valid_commands:
-            commands.CondRemove().execute(command.characters)
+            commands.CondRemove().execute(command)
         elif command.command in commands.CondRemoveAll().valid_commands:
-            commands.CondRemoveAll().execute(command.characters)
+            commands.CondRemoveAll().execute(command)
 
         # Health
         elif command.command in commands.SetHealth().valid_commands:
-            commands.SetHealth().execute(command.characters, command.mod)
+            commands.SetHealth().execute(command)
         elif command.command in commands.SetMaxHealth().valid_commands:
-            commands.SetMaxHealth().execute(command.characters, command.mod)
+            commands.SetMaxHealth().execute(command)
         elif command.command in commands.SetTempHealth().valid_commands:
-            commands.SetTempHealth().execute(command.characters, command.mod)
+            commands.SetTempHealth().execute(command)
 
         # AC
         elif command.command in commands.SetAC().valid_commands:
-            commands.SetAC().execute(command.characters, command.mod)
+            commands.SetAC().execute(command)
 
         # Inventory
         elif command.command in commands.SetAmmo().valid_commands:
-            commands.SetAmmo().execute(command.characters, command.mod)
+            commands.SetAmmo().execute(command)
 
         # Remove
         elif command.command in commands.RemoveCharacter().valid_commands:
-            commands.RemoveCharacter().execute(party.characters, command.characters)
+            commands.RemoveCharacter().execute(command, party.characters)
 
         # Save and Load
         elif command.command in commands.SaveParty().valid_commands:
-            commands.SaveParty().execute(command.mod, party.characters)
+            commands.SaveParty().execute(party.party_data)
         elif command.command in commands.LoadParty().valid_commands:
-            commands.LoadParty().execute(command.mod, party.characters)
+            party_file = commands.LoadParty().execute()
+            party.characters.update(party_file.characters)
 
         elif "help" == command.command:
-            print("should unhide")
             hide_help = False
 
         elif command.command.isnumeric():
@@ -137,11 +137,19 @@ def combat_mode(characters):
         player_input = input("Enter encounter name: ")
         if save_data.does_file_exists(player_input):
             combat.name = player_input
-            combat.combat_data = commands.LoadCombatFile().execute(player_input)
+            combat.combat_data = commands.LoadCombatFile().execute()
             combat.pull_data()
         else:
             print("file not found")
-            return(characters)
+            return characters
+
+    if save_data.does_file_exists(player_input):
+        combat_overwrite = input("Save file with this name exists, do you want to overwrite? Y/N ").lower()
+        if combat_overwrite == "y":
+            combat.name = player_input
+        else:
+            print("file not created")
+            return characters
     else:
         combat.name = player_input
     # update the display
@@ -186,57 +194,57 @@ def combat_mode(characters):
 
         # Creation
         if command.command in commands.AddPlayer().valid_commands:
-            commands.AddPlayer().execute(command.items, combat.characters)
+            commands.AddPlayer().execute(command, combat.characters)
         elif command.command in commands.AddCreature().valid_commands:
-            commands.AddCreature().execute(command.items, combat.characters)
+            commands.AddCreature().execute(command, combat.characters)
         elif command.command in commands.AddCreatureGroup().valid_commands:
-            commands.AddCreatureGroup().execute(command.items, combat.characters, command.mod)
+            commands.AddCreatureGroup().execute(command, combat.characters)
 
         # Actions
         elif command.command in commands.ActionAdd().valid_commands:
-            commands.ActionAdd().execute(command.characters)
+            commands.ActionAdd().execute(command)
         elif command.command in commands.ActionOverwrite().valid_commands:
-            commands.ActionOverwrite().execute(command.characters)
+            commands.ActionOverwrite().execute(command)
         elif command.command in commands.ActionRemoveFirst().valid_commands:
-            commands.ActionRemoveFirst().execute(command.characters)
+            commands.ActionRemoveFirst().execute(command)
         elif command.command in commands.ActionRemoveLast().valid_commands:
-            commands.ActionRemoveLast().execute(command.characters)
+            commands.ActionRemoveLast().execute(command)
 
         # Buffs
         elif command.command in commands.BuffAdd().valid_commands:
-            commands.BuffAdd().execute(command.characters)
+            commands.BuffAdd().execute(command)
         elif command.command in commands.BuffRemove().valid_commands:
-            commands.BuffRemove().execute(command.characters)
+            commands.BuffRemove().execute(command)
         elif command.command in commands.BuffRemoveAll().valid_commands:
-            commands.BuffRemoveAll().execute(command.characters)
+            commands.BuffRemoveAll().execute(command)
 
         # Conditions
         elif command.command in commands.CondAdd().valid_commands:
-            commands.CondAdd().execute(command.characters)
+            commands.CondAdd().execute(command)
         elif command.command in commands.CondRemove().valid_commands:
-            commands.CondRemove().execute(command.characters)
+            commands.CondRemove().execute(command)
         elif command.command in commands.CondRemoveAll().valid_commands:
-            commands.CondRemoveAll().execute(command.characters)
+            commands.CondRemoveAll().execute(command)
 
         # Health
         elif command.command in commands.SetHealth().valid_commands:
-            commands.SetHealth().execute(command.characters, command.mod)
+            commands.SetHealth().execute(command)
         elif command.command in commands.SetMaxHealth().valid_commands:
-            commands.SetMaxHealth().execute(command.characters, command.mod)
+            commands.SetMaxHealth().execute(command)
         elif command.command in commands.SetTempHealth().valid_commands:
-            commands.SetTempHealth().execute(command.characters, command.mod)
+            commands.SetTempHealth().execute(command)
 
         # AC
         elif command.command in commands.SetAC().valid_commands:
-            commands.SetAC().execute(command.characters, command.mod)
+            commands.SetAC().execute(command)
 
         # Inventory
         elif command.command in commands.SetAmmo().valid_commands:
-            commands.SetAmmo().execute(command.characters, command.mod)
+            commands.SetAmmo().execute(command)
 
         # Initiative
         elif command.command in commands.SetInitiative().valid_commands:
-            commands.SetInitiative().execute(command.characters, command.mod)
+            commands.SetInitiative().execute(command)
         elif command.command == "setinit":
             combat.set_initiative()
             combat.turn = 0
@@ -248,15 +256,16 @@ def combat_mode(characters):
 
         # Save and Load
         elif command.command in commands.SaveParty().valid_commands:
-            commands.SaveParty().execute(command.mod, combat.characters)
+            commands.SaveParty().execute(combat.combat_data)
         elif command.command in commands.LoadParty().valid_commands:
-            commands.LoadParty().execute(command.mod, combat.characters)
+            combat_file = commands.LoadParty().execute()
+            combat.characters.update(combat_file.characters)
 
         elif command.command in commands.SaveCombatFile().valid_commands:
             combat.push_data()
-            commands.SaveCombatFile().execute(command.mod, combat.combat_data)
+            commands.SaveCombatFile().execute(combat.combat_data)
         elif command.command in commands.LoadCombatFile().valid_commands:
-            combat.combat_data = commands.LoadCombatFile().execute(command.mod)
+            combat.combat_data = commands.LoadCombatFile().execute()
             combat.pull_data()
 
         # Rounds
@@ -307,8 +316,12 @@ while waiting_for_input:
             waiting_for_input = False
         else:
             file_found = False
+    if save_data.does_file_exists(f"P-{start_command}"):
+        overwrite = input("Party already exists, do you want to overwrite? Y/N ").lower()
+        if overwrite == "y":
+            party_name = start_command
+            waiting_for_input = False
     else:
         party_name = start_command
         waiting_for_input = False
-
 party_mode()

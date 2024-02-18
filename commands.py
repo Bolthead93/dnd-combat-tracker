@@ -16,14 +16,8 @@ class CommandInput:
         if self.items is not None:
             filtered_characters = {name: char for name, char in self.characters.items() if name in self.items}
             self.characters = filtered_characters
-
-
-    def check_has_item(self):
-        if len(self.items) == 1:
-            self.item = self.items[0]
-            return True
         else:
-            return False
+            self.characters = None
 
     def read(self, command_input):
         """take an input and returns a tuple, the first item is a command,
@@ -32,12 +26,50 @@ class CommandInput:
         self.command = commands_list[0]
 
         if len(commands_list) > 2:
-            self.items = commands_list[1].split(",")
-            self.mod = commands_list[2]
+            if len(commands_list[1]) > 0:
+                self.items = commands_list[1].split(",")
+            else:
+                self.items = None
+            if len(commands_list[2]) > 0:
+                self.mod = commands_list[2]
+            else:
+                self.mod = None
 
         elif len(commands_list) == 2:
-            self.items = commands_list[1].split(",")
-            self.mod = None
+            if len(commands_list) > 0:
+                self.items = commands_list[1].split(",")
+            else:
+                self.items = None
+                self.mod = None
+
+        if len(self.items) == 1:
+            self.item = self.items[0]
+        else:
+            self.item = None
+
+    def has_items(self):
+        if self.items is None:
+            return False
+        else:
+            return True
+
+    def has_mod(self):
+        if self.mod is None:
+            return False
+        else:
+            return True
+
+    def has_characters(self):
+        if self.characters is None:
+            return False
+        else:
+            return True
+
+    def has_item(self):
+        if self.item is None:
+            return False
+        else:
+            return True
 
 
 # ----------------------- ACTIONS ---------------------------
@@ -47,39 +79,43 @@ class ActionAdd:
     def __init__(self):
         self.valid_commands = ["a", "action"]
 
-    def execute(self, characters):
-        action = input("Enter the action: ")
-        for char in characters.values():
-            char.add_action(action)
+    def execute(self, command):
+        if command.has_characters():
+            action = input("Enter the action: ")
+            for char in command.characters.values():
+                char.add_action(action)
 
 
 class ActionOverwrite:
     def __init__(self):
         self.valid_commands = ["ao", "action"]
 
-    def execute(self, characters):
-        action = input("Enter the action: ")
-        for char in characters.values():
-            char.actions = [action]
+    def execute(self, command):
+        if command.has_characters():
+            action = input("Enter the action: ")
+            for char in command.characters.values():
+                char.actions = [action]
 
 
 class ActionRemoveLast:
     def __init__(self):
         self.valid_commands = ["arl"]
 
-    def execute(self, characters):
-        for char in characters.values():
-            if len(char.actions) >= 1:
-                char.remove_action(-1)
+    def execute(self, command):
+        if command.has_characters():
+            for char in command.characters.values():
+                if len(char.actions) >= 1:
+                    char.remove_action(-1)
 
 
 class ActionRemoveFirst:
     def __init__(self):
         self.valid_commands = ["arf"]
 
-    def execute(self, characters):
-        for char in characters.values():
-            char.remove_action(0)
+    def execute(self, command):
+        if command.has_characters():
+            for char in command.characters.values():
+                char.remove_action(0)
 
 
 # ----------------------- BUFFS ---------------------------
@@ -89,30 +125,33 @@ class BuffAdd:
     def __init__(self):
         self.valid_commands = ["b", "buff"]
 
-    def execute(self, characters):
-        buff_name = input("Buff name: ")
-        duration = input("Duration: ")
-        for char in characters.values():
-            char.apply_buff(buff_name, duration)
+    def execute(self, command):
+        if command.has_characters():
+            buff_name = input("Buff name: ")
+            duration = input("Duration: ")
+            for char in command.characters.values():
+                char.apply_buff(buff_name, duration)
 
 
 class BuffRemove:
     def __init__(self):
         self.valid_commands = ["br"]
 
-    def execute(self, characters):
-        buff_name = input("Buff name: ")
-        for char in characters.values():
-            char.remove_buff(buff_name)
+    def execute(self, command):
+        if command.has_characters():
+            buff_name = input("Buff name: ")
+            for char in command.characters.values():
+                char.remove_buff(buff_name)
 
 
 class BuffRemoveAll:
     def __init__(self):
         self.valid_commands = ["bra"]
 
-    def execute(self, characters):
-        for char in characters.values():
-            char.remove_all_buffs()
+    def execute(self, command):
+        if command.has_characters():
+            for char in command.characters.values():
+                char.remove_all_buffs()
 
 
 # ----------------------- CONDITIONS ---------------------------
@@ -122,30 +161,33 @@ class CondAdd:
     def __init__(self):
         self.valid_commands = ["c", "cond", "condition"]
 
-    def execute(self, characters):
-        cond_name = input("Condition name: ")
-        duration = input("Duration: ")
-        for char in characters.values():
-            char.apply_condition(cond_name, duration)
+    def execute(self, command):
+        if command.has_characters():
+            cond_name = input("Condition name: ")
+            duration = input("Duration: ")
+            for char in command.characters.values():
+                char.apply_condition(cond_name, duration)
 
 
 class CondRemove:
     def __init__(self):
         self.valid_commands = ["cr"]
 
-    def execute(self, characters):
-        cond_name = input("Condition name: ")
-        for char in characters.values():
-            char.remove_condition(cond_name)
+    def execute(self, command):
+        if command.has_characters():
+            cond_name = input("Condition name: ")
+            for char in command.characters.values():
+                char.remove_condition(cond_name)
 
 
 class CondRemoveAll:
     def __init__(self):
         self.valid_commands = ["cra"]
 
-    def execute(self, characters):
-        for char in characters.values():
-            char.remove_all_conditions()
+    def execute(self, command):
+        if command.has_characters():
+            for char in command.characters.values():
+                char.remove_all_conditions()
 
 
 # ----------------------- HEALTH ---------------------------
@@ -155,12 +197,12 @@ class SetHealth:
     def __init__(self):
         self.valid_commands = ["h", "hp", "health", "damage", "heal"]
 
-    def execute(self, characters, mod):
-        if (mod is None) or not (mod[-1].isnumeric()):
-            health_input = input("Set(#), increase(+#), or decrease(-#):")
+    def execute(self, command):
+        if command.has_mod() and command.mod[-1].isnumeric():
+            health_input = command.mod
         else:
-            health_input = mod
-        for char in characters.values():
+            health_input = input("Set(#), increase(+#), or decrease(-#):")
+        for char in command.characters.values():
             char.set_hp(health_input)
 
 
@@ -168,12 +210,12 @@ class SetMaxHealth:
     def __init__(self):
         self.valid_commands = ["hpm", "maxhp", "hpmax"]
 
-    def execute(self, characters, mod):
-        if (mod is None) or not (mod[-1].isnumeric()):
-            hp_max = input("Enter new max HP: ")
+    def execute(self, command):
+        if command.has_mod() and command.mod[-1].isnumeric():
+            hp_max = command.mod
         else:
-            hp_max = mod
-        for char in characters.values():
+            hp_max = input("Enter new max HP: ")
+        for char in command.characters.values():
             char.set_max_hp(hp_max)
 
 
@@ -181,12 +223,12 @@ class SetTempHealth:
     def __init__(self):
         self.valid_commands = ["hpt", "temp", "temphp", "hptemp"]
 
-    def execute(self, characters, mod):
-        if (mod is None) or not (mod[-1].isnumeric()):
-            temp_health = input("Set temp health: ")
+    def execute(self, command):
+        if command.has_mod() and command.mod[-1].isnumeric():
+            temp_health = command.mod
         else:
-            temp_health = mod
-        for char in characters.values():
+            temp_health = input("Set temp health: ")
+        for char in command.characters.values():
             char.temp_hp(temp_health)
 
 
@@ -197,12 +239,12 @@ class SetAC:
     def __init__(self):
         self.valid_commands = ["ac", "armour"]
 
-    def execute(self, characters, mod):
-        if (mod is None) or not (mod[-1].isnumeric()):
-            ac = input("Set AC: ")
+    def execute(self, command):
+        if command.has_mod() and command.mod[-1].is_numeric():
+            ac = command.mod
         else:
-            ac = mod
-        for char in characters.values():
+            ac = input("Set AC: ")
+        for char in command.characters.values():
             char.set_ac(ac)
 
 
@@ -213,12 +255,12 @@ class SetInitiative:
     def __init__(self):
         self.valid_commands = ["i", "init"]
 
-    def execute(self, characters, mod):
-        if (mod is None) or not (mod[-1].isnumeric()):
-            initiative = input("Set Initiative: ")
+    def execute(self, command):
+        if command.has_mod() and command.mod[-1].is_numeric():
+            initiative = command.mod
         else:
-            initiative = mod
-        for char in characters.values():
+            initiative = input("Set Initiative: ")
+        for char in command.characters.values():
             char.initiative = initiative
 
 class NextTurn:
@@ -242,12 +284,11 @@ class SetAmmo:
     def __init__(self):
         self.valid_commands = ["ammo"]
 
-    def execute(self, characters, mod):
+    def execute(self, command):
         ammo = ""
-        if mod is not None:
-            if mod.isnumeric():
-                ammo = mod
-        for char in characters.values():
+        if command.has_mod() and command.mod.isnumeric():
+            ammo = command.mod
+        for char in command.characters.values():
             char.set_ammo(ammo)
 
 
@@ -258,10 +299,10 @@ class RemoveCharacter:
     def __init__(self):
         self.valid_commands = ["remove"]
 
-    def execute(self, characters_list={}, characters_input={}):
-        for name in characters_input.keys():
-            del characters_list[name]
-
+    def execute(self, command, char_list):
+        if command.has_characters():
+            for name in command.characters.keys():
+                del char_list[name]
 
 
 # ----------------------- CREATION AND GROUPS ---------------------------
@@ -271,9 +312,9 @@ class AddPlayer:
     def __init__(self):
         self.valid_commands = ["np", "player"]
 
-    def execute(self, to_add, char_list):
-        if to_add is not None:
-            for name in to_add:
+    def execute(self, command, char_list):
+        if command.has_items():
+            for name in command.items:
                 char_list[name.strip()] = character.Character(name.title(), char_type="party")
 
 
@@ -281,9 +322,9 @@ class AddCreature:
     def __init__(self):
         self.valid_commands = ["nc", "creature"]
 
-    def execute(self, to_add, char_list):
-        if to_add is not None:
-            for name in to_add:
+    def execute(self, command, char_list):
+        if command.has_items() is not None:
+            for name in command.items:
                 char_list[name.strip()] = character.Character(name.title().strip(), char_type="creatures")
 
 
@@ -291,22 +332,22 @@ class AddCreatureGroup:
     def __init__(self):
         self.valid_commands = ["ncg", "creaturegroup"]
 
-    def execute(self, name, char_list, amount):
-        if amount is not None and char_list is not None:
-            for x in range(int(amount)):
-                char_name = f"{name[0]}{x+1}"
+    def execute(self, command, char_list):
+        if command.has_mod() and command.has_items():
+            for x in range(int(command.mod)):
+                char_name = f"{command.items[0].strip()}{x+1}"
                 char_list[char_name] = character.Character(char_name.title(),
-                                                               char_type="creatures", group_type=name[0])
+                                                               char_type="creatures", group_type=command.items[0])
 
 
 class SetGroup:
     def __init__(self):
         self.valid_commands = ["group", "grp", "g"]
 
-    def execute(self, name, char_input):
+    def execute(self, command, char_input):
         if len(char_input) > 1:
             for char in char_input.values():
-                char.group = name
+                char.group = command.item
 
 
 
@@ -314,10 +355,10 @@ class GetGroups:
     def __init__(self):
         self.valid_commands = ["group", "grp", "g"]
 
-    def get_all_from_groups(self, char_list, items):
+    def get_all_from_groups(self, command, char_list):
         temp_items = []
         temp_chars = {}
-        for item in items:
+        for item in command.items:
             for char in char_list.values():
                 if char.group.lower() == item.lower():
                     temp_chars[char.name.lower()] = char
@@ -329,9 +370,9 @@ class GetType:
     def __init__(self):
         self.valid_commands = ["party", "creatures"]
 
-    def get_all_from_types(self, char_list, items):
-        temp_chars = ({name: char for name, char in char_list.items() if char.type in items})
-        temp_items = ([name for name, char in temp_chars.items() if char.type in items])
+    def get_all_from_types(self, command, char_list):
+        temp_chars = ({name: char for name, char in char_list.items() if char.type in command.items})
+        temp_items = ([name for name, char in temp_chars.items() if char.type in command.items])
         return temp_items, temp_chars
 
 
@@ -341,36 +382,28 @@ class SaveParty:
     def __init__(self):
         self.valid_commands = ["sp", "saveparty"]
 
-    def execute(self, file_input=None, characters={}):
-        if file_input is not None:
-            file_name = file_input.lower()
-        else:
-            file_name = input("Enter party name: ").lower()
-        save_data.save_party(file_name, characters)
+    def execute(self, party_data):
+        file_name = input("Enter party name: ").lower()
+        save_data.save_party(file_name, party_data)
 
 
 class LoadParty:
     def __init__(self):
         self.valid_commands = ["lp", "loadparty"]
 
-    def execute(self, file_input=None, characters={}):
-        if file_input is not None:
-            file_name = file_input.lower()
-        else:
-            file_name = input("Enter party name: ").lower()
-        loaded_party = save_data.load_party(file_name)
-        characters = loaded_party.characters
+    def execute(self):
+
+        file_name = input("Enter party name: ").lower()
+        if save_data.does_file_exists(f"P-{file_name}"):
+            return save_data.load_party(file_name)
 
 
 class LoadCombatFile:
     def __init__(self):
         self.valid_commands = ["load"]
 
-    def execute(self, file_input=None):
-        if file_input is None:
-            file_name = input("Enter file name: ").lower()
-        else:
-            file_name = file_input
+    def execute(self):
+        file_name = input("Enter file name: ").lower()
         if save_data.does_file_exists(file_name):
             file_to_load = save_data.load_file(file_name)
             return file_to_load
@@ -383,11 +416,8 @@ class SaveCombatFile:
     def __init__(self):
         self.valid_commands = ["save"]
 
-    def execute(self, file_input, save_data_file):
-        if file_input is None:
-            file_name = input("Enter file name: ").lower()
-        else:
-            file_name = file_input
+    def execute(self, save_data_file):
+        file_name = input("Enter file name: ").lower()
         save_data.save_file(file_name, save_data_file)
 
 
@@ -424,8 +454,3 @@ class EndCombat:
     def execute(self, combat_manager):
         combat_manager.push_data()
         save_data.save_file(combat_manager.name, combat_manager.combat_data)
-
-
-
-
-

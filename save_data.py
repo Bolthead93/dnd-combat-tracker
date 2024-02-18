@@ -60,7 +60,4 @@ def load_party(file_name):
     make_save_directory()
     with open(f"{get_save_directory()}P-{file_name}.pkl", "rb") as f:
         data_file = pickle.load(f)
-        data_file.characters = {n: c for (n, c) in data_file.characters.items() if c.type == "party"}
     return data_file
-
-

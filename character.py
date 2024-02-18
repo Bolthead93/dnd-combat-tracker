@@ -149,11 +149,13 @@ class Character:
         if len(finished_buffs) == 0:
             end_buffs = ""
         else:
-            end_buffs = f"Buffs ending: {str(", ").join(finished_buffs)},"
+            formatted_end_buffs = str(", ").join(finished_buffs)
+            end_buffs = f"Buffs ending: {formatted_end_buffs},"
         if len(finished_conditions) == 0:
             end_conds = ""
         else:
-            end_conds = f"Conditions ending: {str(", ").join(finished_conditions)}"
+            formatted_end_conds = str(", ").join(finished_conditions)
+            end_conds = f"Conditions ending: {formatted_end_conds}"
         return f"{end_buffs}{end_conds}"
 
     def clear_inactive_buffs(self):
