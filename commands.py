@@ -1,6 +1,5 @@
 import character
 import save_data
-import copy
 
 class CommandInput:
     def __init__(self, user_input, characters):

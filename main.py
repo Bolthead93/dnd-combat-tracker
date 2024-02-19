@@ -5,7 +5,6 @@ import party_manager
 import save_data
 import combat_manager
 import os
-import copy
 
 party_name = ""
 characters_list = {}
