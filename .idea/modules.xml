@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../build-dnd-combat-tracker/.idea/build-dnd-combat-tracker.iml" filepath="$PROJECT_DIR$/../build-dnd-combat-tracker/.idea/build-dnd-combat-tracker.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/dnd-combat-tracker.iml" filepath="$PROJECT_DIR$/.idea/dnd-combat-tracker.iml" />
     </modules>
   </component>

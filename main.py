@@ -100,6 +100,13 @@ def party_mode():
         # AC
         elif command.command in commands.SetAC().valid_commands:
             commands.SetAC().execute(command)
+        # Time
+        elif command.command in commands.TimeForwards().valid_commands:
+            commands.TimeForwards().execute(party)
+        elif command.command in commands.TimeBackwards().valid_commands:
+            commands.TimeBackwards().execute(party)
+        elif command.command in commands.SetTOD().valid_commands:
+            commands.SetTOD().execute(command, party)
 
         # Inventory
         elif command.command in commands.SetAmmo().valid_commands:

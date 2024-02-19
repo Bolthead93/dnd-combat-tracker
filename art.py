@@ -301,6 +301,7 @@ COMMANDS:
             - Health Max* (hpm) - set the max HP. when setting 'hp' the first time, this will be set to that value.
             - AC* (ac) - set the AC for characters.
             - Remove (remove) - 'remove,jimothy' will remove jimothy from the list.
+    - Time of Day - Set with (tod/00,00), go forwards 15 minutes (t), rewind 15 minutes (tr)
     - Enter Combat Mode (combat) - move the players in to combat mode.
     - Save Party (sp) - save the players to a party file, can be used in combat to save just the players
     - Load Party (lp) - load the players from a party file, used on app launch or to load them in to combat
@@ -314,6 +315,7 @@ COMMANDS:
     - Edit Player/Creature - Uses the same COMMAND/NAME/MOD structure as in party mode, but has a couple extras.
         - Initiative* (i) - set the initiative for a specific character(s).
         - Count Ammo* (ammo) - using without MOD will count down 1 ammo, using with MOD will set ammo.
+            set ammo to 0 to hide it.
     - Set Initiative For All (setinit) - this will prompt you for each character 1 by 1.
     - Next Turn (t) / Previous Turn (tr) - move through the initiative tracker.
     - Progress Round (r) - move to the next round, buffs and conditions update and will be cleared if they were ending.
@@ -342,4 +344,5 @@ COMMANDS:
         - Edit Creatures (COMMAND/creatures/MOD) - edit all creatures in the creature list.
             -These last 2 commands are most useful for resetting things, for example you can use the command
             'hp/party/+1000', and as long as the players had a max HP set, then it will fill all their HP to max.
+            or 'bra/party' to remove all buffs from all party members.
 """)

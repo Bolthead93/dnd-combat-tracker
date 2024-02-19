@@ -247,7 +247,7 @@ class SetAC:
             char.set_ac(ac)
 
 
-# ----------------------- INITIATIVE ---------------------------
+# ----------------------- INITIATIVE / TOD ---------------------------
 
 
 class SetInitiative:
@@ -275,6 +275,29 @@ class PreviousTurn:
 
     def execute(self, cm):
         cm.previous_turn()
+
+class TimeForwards:
+    def __init__(self):
+        self.valid_commands = ["t"]
+
+    def execute(self, pm):
+        pm.time_forwards()
+
+class TimeBackwards:
+    def __init__(self):
+        self.valid_commands = ["tr"]
+
+    def execute(self, pm):
+        pm.time_backwards()
+
+class SetTOD:
+    def __init__(self):
+        self.valid_commands = ["tod"]
+
+    def execute(self, command, pm):
+        if command.has_items() and len(command.items) > 1:
+            if command.items[0].isnumeric() and command.items[1].isnumeric():
+                pm.set_tod(int(command.items[0]), int(command.items[1]))
 
 
 # ----------------------- INVENTORY ---------------------------

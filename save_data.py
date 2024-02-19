@@ -6,7 +6,7 @@ class PartyDataFile:
         self.characters = {}
         self.name = ""
         self.notes = []
-        self.tod = 0.0
+        self.tod = (8, 0)
 
 
 class CombatDataFile:

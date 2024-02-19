@@ -55,6 +55,13 @@ class CombatLogger:
 
 
 class PartyLogger:
+    def display_tod(self, pm):
+        if pm.tod_h >= 12:
+            am_pm = "pm"
+        else:
+            am_pm = "am"
+        print(f"Time of Day: {pm.tod_h:02d}:{pm.tod_m:02d} {am_pm}")
+
 
     def display_notes(self, pm):
         if len(pm.notes) > 0:
@@ -68,6 +75,7 @@ class PartyLogger:
         art.make_combat_title(pm.name)
 
         self.display_notes(pm)
+        self.display_tod(pm)
 
         if len(pm.characters) > 0:
             print(art.create_banner("--- PLAYERS--- "))
