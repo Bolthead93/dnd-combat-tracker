@@ -148,10 +148,8 @@ def combat_mode(characters):
     player_input = input("Enter an encounter name or type 'load': ").lower()
     if player_input in commands.LoadCombatFile().valid_commands:
         if commands.LoadCombatFile().get_combat_files():
-            os.system("cls")
-            print(commands.LoadCombatFile().format_combat_list(commands.LoadCombatFile().get_combat_files()))
-            if save_data.does_file_exists(player_input):
-                loaded_combat = commands.LoadCombatFile().execute()
+            loaded_combat = commands.LoadCombatFile().execute()
+            if loaded_combat is not None:
                 combat.combat_data = loaded_combat
                 combat.pull_data()
                 combat.characters.update(characters)
