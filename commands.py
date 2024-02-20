@@ -1,3 +1,5 @@
+import os
+import pickle
 import character
 import save_data
 
@@ -415,23 +417,97 @@ class LoadParty:
         self.valid_commands = ["lp", "loadparty"]
 
     def execute(self):
-
-        file_name = input("Enter party name: ").lower()
+        os.system("cls")
+        print(self.format_party_list(self.get_party_files()))
+        file_name = input("\nEnter party to load: ").lower()
         if save_data.does_file_exists(f"P-{file_name}"):
             return save_data.load_party(file_name)
+
+    def get_party_files(self):
+        save_data.make_save_directory()
+        file_list = os.listdir(save_data.get_save_directory())
+        party_list = []
+        if len(file_list) != 0:
+            for file in file_list:
+                if file[0:2] == "P-":
+                    party_list.append(file[2:-4])
+        if len(party_list) != 0:
+            return True, party_list
+        else:
+            return False
+
+    def format_party_list(self, party_list):
+        nice_names = "Party files:\n\n"
+        nice_names += str("\n").join(party_list[1])
+        return nice_names
+
+
+class ImportCreatures:
+    def __init__(self):
+        self.valid_commands = ["lc", "loadCreatures", "import"]
+
+    def execute(self):
+        print(self.format_combat_list(self.get_combat_files()))
+        file_name = input("\nEnter encounter to import creatures from: ").lower()
+        if save_data.does_file_exists(file_name):
+            combat_data = save_data.load_file(file_name)
+            character_dict = pickle.loads(combat_data.round_data[combat_data.highest_round])
+            creature_dict = {name: creature for name, creature in character_dict.items() if creature.type == "creatures"}
+            return creature_dict
+        else:
+            print("file not found")
+            return None
+
+    def get_combat_files(self):
+        save_data.make_save_directory()
+        file_list = os.listdir(save_data.get_save_directory())
+        combat_list = []
+        if len(file_list) != 0:
+            for file in file_list:
+                if not file[0:2] == "P-":
+                    combat_list.append(file[0:-4])
+        if len(combat_list) != 0:
+            return True, combat_list
+        else:
+            return False
+
+    def format_combat_list(self, combat_list):
+        nice_names = "Combat files:\n\n"
+        nice_names += str("\n").join(combat_list[1])
+        return nice_names
 
 
 class LoadCombatFile:
     def __init__(self):
         self.valid_commands = ["load"]
 
-    def execute(self, file_name):
+    def execute(self):
+        print(self.format_combat_list(self.get_combat_files()))
+        file_name = input("\nEnter encounter to load: ").lower()
         if save_data.does_file_exists(file_name):
             file_to_load = save_data.load_file(file_name)
             return file_to_load
         else:
             print("file not found")
             return None
+
+    def get_combat_files(self):
+        save_data.make_save_directory()
+        file_list = os.listdir(save_data.get_save_directory())
+        combat_list = []
+        if len(file_list) != 0:
+            for file in file_list:
+                if not file[0:2] == "P-":
+                    combat_list.append(file[0:-4])
+        if len(combat_list) != 0:
+            return True, combat_list
+        else:
+            return False
+
+    def format_combat_list(self, combat_list):
+        nice_names = "Combat files:\n\n"
+        nice_names += str("\n").join(combat_list[1])
+        return nice_names
 
 
 class SaveCombatFile:
@@ -440,7 +516,12 @@ class SaveCombatFile:
 
     def execute(self, save_data_file):
         file_name = input("Enter file name: ").lower()
-        save_data.save_file(file_name, save_data_file)
+        if save_data.does_file_exists(file_name):
+            save_overwrite = input("Save file with this name exists, do you want to overwrite? Y/N ").lower()
+            if save_overwrite == "y":
+                save_data.save_file(file_name, save_data_file)
+        else:
+            save_data.save_file(file_name, save_data_file)
 
 
 # ----------------------- ROUNDS ---------------------------

@@ -311,6 +311,7 @@ COMMANDS:
     In combat mode you can use the commands from party mode along with these new ones.
     - Add new creature (nc/NAME) or (nc/NAME,NAME,NAME) - adds a creature to the creatures list.
     - Add new creature group (ncg/NAME/QUANTITY) - add multiple creatures that share a name.
+    - Import creatures (import) - will prompt you for a combat file and load the creatures from it.
         for example 'ncg/zombie/3' will add 3 zombies called 'Zombie1', 'Zombie2', 'Zombie3'.
     - Edit Player/Creature - Uses the same COMMAND/NAME/MOD structure as in party mode, but has a couple extras.
         - Initiative* (i) - set the initiative for a specific character(s).

@@ -147,12 +147,11 @@ def combat_mode(characters):
     # load in existing encounter or create a new one
     player_input = input("Enter an encounter name or type 'load': ").lower()
     if player_input in commands.LoadCombatFile().valid_commands:
-        if get_combat_files():
+        if commands.LoadCombatFile().get_combat_files():
             os.system("cls")
-            print(format_combat_list(get_combat_files()))
-            player_input = input("\nEnter encounter to load: ").lower()
+            print(commands.LoadCombatFile().format_combat_list(commands.LoadCombatFile().get_combat_files()))
             if save_data.does_file_exists(player_input):
-                loaded_combat = commands.LoadCombatFile().execute(player_input)
+                loaded_combat = commands.LoadCombatFile().execute()
                 combat.combat_data = loaded_combat
                 combat.pull_data()
                 combat.characters.update(characters)
@@ -165,16 +164,17 @@ def combat_mode(characters):
             print_error = True
             return (characters)
     elif save_data.does_file_exists(player_input):
-        print(f"we care checking if a file exists {combat.name} input {player_input}")
         combat_overwrite = input("Save file with this name exists, do you want to overwrite? Y/N ").lower()
         if combat_overwrite == "y":
             combat.name = player_input
+            combat.characters = characters
         else:
             error = "File not created!"
             print_error = True
             return characters
     else:
         combat.name = player_input
+        combat.characters = characters
     # update the display
     combat_display = display.CombatLogger()
 
@@ -201,10 +201,10 @@ def combat_mode(characters):
         if command.items is not None:
             if "party" in command.items or "creatures" in command.items:
                 command.items, command.characters = (commands.GetType()
-                                                     .get_all_from_types(combat.characters, command.items))
+                                                     .get_all_from_types(command, combat.characters))
             if command.mod in commands.GetGroups().valid_commands:
                 command.items, command.characters = (commands.GetGroups()
-                                                     .get_all_from_groups(combat.characters, command.items))
+                                                     .get_all_from_groups(command, combat.characters))
 
         # Group
         if command.command in commands.SetGroup().valid_commands:
@@ -279,6 +279,10 @@ def combat_mode(characters):
             combat_file = commands.LoadParty().execute()
             combat.characters.update(combat_file.characters)
 
+        elif command.command in commands.ImportCreatures().valid_commands:
+            import_creatures = commands.ImportCreatures().execute()
+            combat.characters.update(import_creatures)
+
         elif command.command in commands.SaveCombatFile().valid_commands:
             combat.push_data()
             commands.SaveCombatFile().execute(combat.combat_data)
@@ -314,45 +318,6 @@ def combat_mode(characters):
             combat.notes.append(command.command)
 
 
-def get_party_files():
-    save_data.make_save_directory()
-    file_list = os.listdir(save_data.get_save_directory())
-    party_list = []
-    if len(file_list) != 0:
-        for file in file_list:
-            if file[0:2] == "P-":
-                party_list.append(file[2:-4])
-    if len(party_list) != 0:
-        return True, party_list
-    else:
-        return False
-
-
-def format_party_list(party_list):
-    nice_names = "Party files:\n\n"
-    nice_names += str("\n").join(party_list[1])
-    return nice_names
-
-
-def get_combat_files():
-    save_data.make_save_directory()
-    file_list = os.listdir(save_data.get_save_directory())
-    combat_list = []
-    if len(file_list) != 0:
-        for file in file_list:
-            if not file[0:2] == "P-":
-                combat_list.append(file[0:-4])
-    if len(combat_list) != 0:
-        return True, combat_list
-    else:
-        return False
-
-
-def format_combat_list(party_list):
-    nice_names = "Combat files:\n\n"
-    nice_names += str("\n").join(party_list[1])
-    return nice_names
-
 # start up the game to create or load a party
 waiting_for_input = True
 print_error = False
@@ -364,9 +329,9 @@ while waiting_for_input:
         print(f"\n{error}")
     start_command = input("\nType a new party name or 'load' one: ").lower()
     if start_command == "load":
-        if get_party_files():
+        if commands.LoadParty().get_party_files():
             os.system("cls")
-            print(format_party_list(get_party_files()))
+            print(commands.LoadParty().format_party_list(commands.LoadParty().get_party_files()))
             file_name = input("\nEnter party to load: ").lower()
             if save_data.does_file_exists(f"P-{file_name}"):
                 loaded_party = save_data.load_party(file_name)
