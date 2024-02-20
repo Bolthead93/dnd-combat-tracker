@@ -68,7 +68,7 @@ def party_mode():
             commands.SetGroup().execute(command, party.characters)
 
         if user_input == "combat":
-            party.characters = combat_mode(party.characters)
+            party = combat_mode(party)
 
         # Creation
         elif command.command in commands.AddPlayer().valid_commands:
@@ -136,6 +136,15 @@ def party_mode():
                 error = "Invalid party file name!"
                 print_error = True
             else:
+                party.party_data = party_file
+                party.pull_data()
+
+        elif command.command in commands.ImportParty().valid_commands:
+            party_file = commands.LoadParty().execute()
+            if party_file is None:
+                error = "Invalid party file name!"
+                print_error = True
+            else:
                 party.characters.update(party_file.characters)
 
         elif "help" == command.command:
@@ -147,7 +156,7 @@ def party_mode():
             party.notes.append(command.command)
 
 
-def combat_mode(characters):
+def combat_mode(pm):
     global error
     global print_error
     # set up the combat manager
@@ -160,29 +169,30 @@ def combat_mode(characters):
             if loaded_combat is not None:
                 combat.combat_data = loaded_combat
                 combat.pull_data()
-                combat.characters.update(characters)
+                combat.characters.update(pm.characters)
             else:
                 print_error = True
                 error = f"Invalid combat file name!"
-                return characters
+                return pm
         else:
             error = "No combat files found!"
             print_error = True
-            return (characters)
+            return (pm)
     elif save_data.does_file_exists(player_input):
         combat_overwrite = input("Save file with this name exists, do you want to overwrite? Y/N ").lower()
         if combat_overwrite == "y":
             combat.name = player_input
-            combat.characters = characters
+            combat.characters = pm.characters
         else:
             error = "File not created!"
             print_error = True
-            return characters
+            return pm
     else:
         combat.name = player_input
-        combat.characters = characters
+        combat.characters = pm.characters
     # update the display
     combat_display = display.CombatLogger()
+
 
     hide_help = True
     in_combat = True
@@ -284,14 +294,24 @@ def combat_mode(characters):
 
         # Save and Load
         elif command.command in commands.SaveParty().valid_commands:
-            commands.SaveParty().execute(combat.combat_data)
+            commands.SaveParty().execute(pm.party_data)
         elif command.command in commands.LoadParty().valid_commands:
-            combat_file = commands.LoadParty().execute()
-            if combat_file is None:
+            party_file = commands.LoadParty().execute()
+            if party_file is None:
                 error = "Invalid party file name!"
                 print_error = True
             else:
-                combat.characters.update(combat_file.characters)
+                pm.party_data = party_file
+                pm.pull_data()
+                combat.characters = {name: char for name, char in combat.characters.items() if char.type == "creatures"}
+                combat.characters.update(pm.characters)
+        elif command.command in commands.ImportParty().valid_commands:
+            party_file = commands.LoadParty().execute()
+            if party_file is None:
+                error = "Invalid party file name!"
+                print_error = True
+            else:
+                combat.characters.update(party_file.characters)
 
         elif command.command in commands.ImportCreatures().valid_commands:
             import_creatures = commands.ImportCreatures().execute()
@@ -326,7 +346,8 @@ def combat_mode(characters):
         elif command.command in commands.EndCombat().valid_commands:
             commands.EndCombat().execute(combat)
             combat.dump_round_characters()
-            return combat.characters
+            pm.characters = {name: char for name, char in combat.characters.items() if char.type == "party"}
+            return pm
 
         elif "help" == command:
             hide_help = False

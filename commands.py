@@ -411,6 +411,9 @@ class SaveParty:
         file_name = input("Enter party name: ").lower()
         save_data.save_party(file_name, party_data)
 
+class ImportParty:
+    def __init__(self):
+        self.valid_commands = ["ip"]
 
 class LoadParty:
     def __init__(self):
@@ -479,7 +482,7 @@ class ImportCreatures:
 
 class LoadCombatFile:
     def __init__(self):
-        self.valid_commands = ["load"]
+        self.valid_commands = ["load", "lc"]
 
     def execute(self):
         print(self.format_combat_list(self.get_combat_files()))
@@ -512,7 +515,7 @@ class LoadCombatFile:
 
 class SaveCombatFile:
     def __init__(self):
-        self.valid_commands = ["save"]
+        self.valid_commands = ["save", "sc"]
 
     def execute(self, save_data_file):
         file_name = input("Enter file name: ").lower()

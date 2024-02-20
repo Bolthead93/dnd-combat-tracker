@@ -304,7 +304,8 @@ COMMANDS:
     - Time of Day - Set with (tod/00,00), go forwards 15 minutes (t), rewind 15 minutes (tr)
     - Enter Combat Mode (combat) - move the players in to combat mode.
     - Save Party (sp) - save the players to a party file, can be used in combat to save just the players
-    - Load Party (lp) - load the players from a party file, used on app launch or to load them in to combat
+    - Load Party (lp) - load and overwrite the the party with players from a party file
+    - Import Party (ip) - import players from a party file and add them to the current party
     - Show Help (help) - show this help information.
         
     COMBAT MODE:
@@ -312,7 +313,7 @@ COMMANDS:
     - Add new creature (nc/NAME) or (nc/NAME,NAME,NAME) - adds a creature to the creatures list.
     - Add new creature group (ncg/NAME/QUANTITY) - add multiple creatures that share a name.
         for example 'ncg/zombie/3' will add 3 zombies called 'Zombie1', 'Zombie2', 'Zombie3'.
-    - Load Creatures (lc) or (import) - will prompt you for a combat file and load the creatures from it.
+    - Import Creatures (ic) - get creatures from another combat file and add them to the current encounter.
     - Edit Player/Creature - Uses the same COMMAND/NAME/MOD structure as in party mode, but has a couple extras.
         - Initiative* (i) - set the initiative for a specific character(s).
         - Count Ammo* (ammo) - using without MOD will count down 1 ammo, using with MOD will set ammo.
@@ -322,8 +323,8 @@ COMMANDS:
     - Progress Round (r) - move to the next round, buffs and conditions update and will be cleared if they were ending.
     - Next Round (rf) / Previous Round (rr) - this will let you step back through rounds, like an undo/redo.
         if you step back to a round, and then progress round, the round you were on will be used as the latest.
-    - Save (save) / Load (load) - save or load combat encounters, this will save or load
-        all characters at the latest round of combat. Useful for setting up encounters before the sesh.
+    - Save (save) save the combat file with all players and creatures 
+    - Load (load) - load the combat file at the latest round available
     - End Combat (end) - takes the player characters back to party mode with the same stats as they 
         had in current round.
     
