@@ -12,6 +12,8 @@ notes = []
 tod = (8, 0)
 save_data.make_save_directory()
 error = "File not found"
+print_error = False
+
 
 def display_help():
     print(art.create_banner("HELP"))
@@ -19,7 +21,8 @@ def display_help():
 
 
 def party_mode():
-
+    global error
+    global print_error
     # set up the party manager
     party = party_manager.PartyManager()
     party.characters = characters_list
@@ -45,6 +48,7 @@ def party_mode():
 
         if print_error:
             print(f"\n{error}")
+            print_error = False
 
         # take user input
         user_input = input("\nWhat do you want to do? ").lower()
@@ -128,7 +132,11 @@ def party_mode():
             commands.SaveParty().execute(party.party_data)
         elif command.command in commands.LoadParty().valid_commands:
             party_file = commands.LoadParty().execute()
-            party.characters.update(party_file.characters)
+            if party_file is None:
+                error = "Invalid party file name!"
+                print_error = True
+            else:
+                party.characters.update(party_file.characters)
 
         elif "help" == command.command:
             hide_help = False
@@ -155,7 +163,7 @@ def combat_mode(characters):
                 combat.characters.update(characters)
             else:
                 print_error = True
-                error = f"{player_input} does not exist!"
+                error = f"Invalid combat file name!"
                 return characters
         else:
             error = "No combat files found!"
@@ -190,6 +198,10 @@ def combat_mode(characters):
         if not hide_help:
             hide_help = True
             display_help()
+
+        if print_error:
+            print(f"\n{error}")
+            print_error = False
 
         # take user input
         user_input = input("\nWhat do you want to do? ").lower()
@@ -275,7 +287,11 @@ def combat_mode(characters):
             commands.SaveParty().execute(combat.combat_data)
         elif command.command in commands.LoadParty().valid_commands:
             combat_file = commands.LoadParty().execute()
-            combat.characters.update(combat_file.characters)
+            if combat_file is None:
+                error = "Invalid party file name!"
+                print_error = True
+            else:
+                combat.characters.update(combat_file.characters)
 
         elif command.command in commands.ImportCreatures().valid_commands:
             import_creatures = commands.ImportCreatures().execute()
@@ -285,8 +301,13 @@ def combat_mode(characters):
             combat.push_data()
             commands.SaveCombatFile().execute(combat.combat_data)
         elif command.command in commands.LoadCombatFile().valid_commands:
-            combat.combat_data = commands.LoadCombatFile().execute()
-            combat.pull_data()
+            loaded_combat_data = commands.LoadCombatFile().execute()
+            if loaded_combat_data is None:
+                error = "Invalid combat file name!"
+                print_error = True
+            else:
+                combat.combat_data = loaded_combat_data
+                combat.pull_data()
 
         # Rounds
         elif command.command in commands.NextRound().valid_commands:
@@ -318,7 +339,6 @@ def combat_mode(characters):
 
 # start up the game to create or load a party
 waiting_for_input = True
-print_error = False
 while waiting_for_input:
     os.system("cls")
     print(art.logo)

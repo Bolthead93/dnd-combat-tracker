@@ -257,7 +257,7 @@ class SetInitiative:
         self.valid_commands = ["i", "init"]
 
     def execute(self, command):
-        if command.has_mod() and command.mod[-1].is_numeric():
+        if command.has_mod() and command.mod[-1].isnumeric():
             initiative = command.mod
         else:
             initiative = input("Set Initiative: ")
