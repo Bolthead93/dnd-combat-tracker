@@ -367,9 +367,10 @@ class SetGroup:
         self.valid_commands = ["group", "grp", "g"]
 
     def execute(self, command, char_input):
-        if len(char_input) > 1:
-            for char in char_input.values():
-                char.group = command.item
+        if command.has_mod and command.has_items:
+            if len(char_input) > 1:
+                for char in char_input.values():
+                    char.group = command.mod
 
 
 
@@ -424,8 +425,7 @@ class LoadCombatFile:
     def __init__(self):
         self.valid_commands = ["load"]
 
-    def execute(self):
-        file_name = input("Enter file name: ").lower()
+    def execute(self, file_name):
         if save_data.does_file_exists(file_name):
             file_to_load = save_data.load_file(file_name)
             return file_to_load
