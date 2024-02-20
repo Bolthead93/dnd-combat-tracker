@@ -388,5 +388,6 @@ while waiting_for_input:
             waiting_for_input = False
     else:
         party_name = start_command
+        print_error = False
         waiting_for_input = False
 party_mode()
